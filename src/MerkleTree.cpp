@@ -23,4 +23,5 @@ MerkleTree::MerkleTree(const std::vector<std::string>& data): data(data) {
 		}
 		num_nodes_in_level = ceil(num_nodes_in_level / 2);
 	}
+	this->root = level_nodes[0];
 }
