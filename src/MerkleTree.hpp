@@ -4,11 +4,26 @@
 #include <string>
 #include <vector>
 
+using std::string;
+using std::vector;
+
+struct MerkleNode {
+	string val;
+	MerkleNode* parent;
+	MerkleNode* sibling;
+	MerkleNode(string val): val(val), parent(NULL), sibling(NULL) {}
+};
+
+struct MerkleData : MerkleNode {
+	MerkleData(string val) : MerkleNode(val) {}
+};
+
 class MerkleTree {
 public:
-	MerkleTree(const std::vector<std::string>& data);
+	MerkleTree(const vector<string>& tuples);
+	string getRoot() const { return this->root; }
 private:
-	std::string root;
-	std::vector<std::string> data;
+	string root;
+	vector<MerkleData*> data;
 };
 #endif
