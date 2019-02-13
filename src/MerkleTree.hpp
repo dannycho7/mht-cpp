@@ -18,12 +18,20 @@ struct MerkleData : MerkleNode {
 	MerkleData(string val) : MerkleNode(val) {}
 };
 
+struct VO {
+	string tuple;
+	vector<string> sibling_path;
+};
+
 class MerkleTree {
 public:
 	MerkleTree(const vector<string>& tuples);
 	string getRoot() const { return this->root; }
+	VO getVO(const string val) const;
 private:
-	string root;
+	string root;	
 	vector<MerkleData*> data;
+	void computeVOForMerkleData(const MerkleData* md, VO& verification_obj) const;
+	MerkleData* findByVal(const string val) const;
 };
 #endif
