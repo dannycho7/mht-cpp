@@ -19,7 +19,7 @@ struct MerkleData : MerkleNode {
 };
 
 struct VO {
-	string tuple;
+	string val;
 	vector<string> sibling_path;
 };
 
@@ -31,7 +31,7 @@ public:
 private:
 	string root;	
 	vector<MerkleData*> data;
-	void computeVOForMerkleData(const MerkleData* md, VO& verification_obj) const;
+	void computeVOForMerkleData(const MerkleData* md, VO& verif_obj) const;
 	MerkleData* findByVal(const string val) const;
 };
 #endif

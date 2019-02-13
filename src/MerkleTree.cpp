@@ -52,8 +52,13 @@ VO MerkleTree::getVO(const string val) const {
 	return verification_obj;
 }
 
-void MerkleTree::computeVOForMerkleData(const MerkleData* md, VO& verification_obj) const {
-
+void MerkleTree::computeVOForMerkleData(const MerkleData* md, VO& verif_obj) const {
+	verif_obj.val = md->val;
+	MerkleNode* curr_mn = md->parent;
+	while (curr_mn->parent != NULL) {
+		verif_obj.sibling_path.push_back(curr_mn->sibling->val);
+		curr_mn = curr_mn->parent;
+	}
 }
 
 MerkleData* MerkleTree::findByVal(const string val) const {
