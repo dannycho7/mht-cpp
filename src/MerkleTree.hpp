@@ -27,11 +27,11 @@ class MerkleTree {
 public:
 	MerkleTree(const vector<string>& tuples);
 	string getRoot() const { return this->root; }
-	VO getVO(const string val) const;
+	VO getVO(const string& val) const;
 private:
 	string root;	
 	vector<MerkleData*> data;
-	void computeVOForMerkleData(const MerkleData* md, VO& verif_obj) const;
-	MerkleData* findByVal(const string val) const;
+	void computeVOForMerkleData(const MerkleData* const md, VO& verif_obj) const;
+	MerkleData* findByVal(const string& val) const;
 };
 #endif
