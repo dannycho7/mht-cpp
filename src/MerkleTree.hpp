@@ -1,5 +1,4 @@
-#ifndef MERKLE_TREE_H
-#define MERKLE_TREE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -34,4 +33,3 @@ private:
 	void computeVOForMerkleData(const MerkleData* const md, VO& verif_obj) const;
 	MerkleData* findByVal(const string& val) const;
 };
-#endif
