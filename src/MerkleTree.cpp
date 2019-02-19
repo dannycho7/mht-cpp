@@ -83,3 +83,18 @@ MerkleData* MerkleTree::findByVal(const string& val) const {
 	}
 	return *it;
 }
+
+void MerkleTree::update(string k, string v) {
+	auto md_it = this->kd_map.find(k);
+	assert(md_it != this->kd_map.end());
+	MerkleData* md = md_it->second;
+	md->val = v;
+	MerkleNode* prev = md;
+	MerkleNode* curr = md->parent;
+	while (curr != NULL) {
+		string concat = (prev->sibling != NULL) ? prev->val + prev->sibling->val : prev->val;
+		curr->val = hash_256(concat);
+		prev = curr;
+		curr = curr->parent;
+	}
+}
