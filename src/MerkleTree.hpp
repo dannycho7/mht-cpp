@@ -32,6 +32,7 @@ typedef pair<string, MerkleData*> KDPair;
 class MerkleTree {
 public:
 	MerkleTree(const vector<Tuple>& tuples);
+	~MerkleTree();
 	string getRoot() const { return this->root; }
 	VO getVO(const string& val) const;
 private:

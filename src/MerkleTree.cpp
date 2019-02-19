@@ -50,6 +50,12 @@ MerkleTree::MerkleTree(const vector<Tuple>& tuples): data(tuples.size()) {
 	this->root = level_nodes[0]->val;
 }
 
+MerkleTree::~MerkleTree() {
+	for (auto it = this->data.begin(); it != this->data.end(); it++) {
+		delete *it;
+	}
+}
+
 VO MerkleTree::getVO(const string& val) const {
 	MerkleData* md = findByVal(val);
 	VO verification_obj;
