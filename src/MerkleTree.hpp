@@ -1,8 +1,12 @@
 #pragma once
 
+#include <map>
 #include <string>
+#include <utility> /* std::pair */
 #include <vector>
 
+using std::map;
+using std::pair;
 using std::string;
 using std::vector;
 
@@ -22,13 +26,17 @@ struct VO {
 	vector<string> sibling_path;
 };
 
+typedef pair<string, string> Tuple; /* k, v */
+typedef pair<string, MerkleData*> KDPair;
+
 class MerkleTree {
 public:
-	MerkleTree(const vector<string>& tuples);
+	MerkleTree(const vector<Tuple>& tuples);
 	string getRoot() const { return this->root; }
 	VO getVO(const string& val) const;
 private:
-	string root;	
+	string root;
+	map<string, MerkleData*> kd_map;
 	vector<MerkleData*> data;
 	void computeVOForMerkleData(const MerkleData* const md, VO& verif_obj) const;
 	MerkleData* findByVal(const string& val) const;

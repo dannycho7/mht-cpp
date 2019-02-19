@@ -12,10 +12,15 @@ string hash_256(const string& in) {
 	return hash_hex_str;
 }
 
-MerkleTree::MerkleTree(const vector<string>& tuples): data(tuples.size()) {
+MerkleTree::MerkleTree(const vector<Tuple>& tuples): data(tuples.size()) {
 	assert(tuples.size() > 0);
-	std::transform(tuples.begin(), tuples.end(), data.begin(), [](string t) {
-		return new MerkleData(t);
+	for (auto it = tuples.begin(); it != tuples.end(); it++) {
+		assert(this->kd_map.find(it->first) != this->kd_map.end());
+		this->kd_map[it->first] = new MerkleData(it->second);
+	}
+
+	std::transform(this->kd_map.begin(), this->kd_map.end(), data.begin(), [](KDPair kd_pair) {
+		return kd_pair.second;
 	});
 
 	vector<MerkleNode*> level_nodes(data.size());
