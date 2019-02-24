@@ -56,8 +56,8 @@ MerkleTree::~MerkleTree() {
 	}
 }
 
-VO MerkleTree::getVO(const string& val) const {
-	MerkleData* md = findByVal(val);
+VO MerkleTree::getVO(const string& k) const {
+	MerkleData* md = findByKey(k);
 	VO verification_obj;
 	computeVOForMerkleData(md, verification_obj);
 	return verification_obj;
@@ -72,16 +72,14 @@ void MerkleTree::computeVOForMerkleData(const MerkleData* const md, VO& verif_ob
 	}
 }
 
-MerkleData* MerkleTree::findByVal(const string& val) const {
-	auto it = std::find_if(this->data.begin(), this->data.end(), [val](MerkleData* md_ptr) -> bool {
-		return (md_ptr->val == val);
-	});
-	if (it == this->data.end()) {
+MerkleData* MerkleTree::findByKey(const string& k) const {
+	auto md_it = this->kd_map.find(k);
+	if (md_it == this->kd_map.end()) {
 		std::ostringstream err_msg_s;
-		err_msg_s << val << " does not exist in the MerkleTree";
+		err_msg_s << k << " does not exist in the MerkleTree";
  		throw std::invalid_argument(err_msg_s.str());
 	}
-	return *it;
+	return md_it->second;
 }
 
 void MerkleTree::update(string k, string v) {

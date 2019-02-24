@@ -34,12 +34,12 @@ public:
 	MerkleTree(const vector<Tuple>& tuples);
 	~MerkleTree();
 	string getRoot() const { return this->root; }
-	VO getVO(const string& val) const;
+	VO getVO(const string& k) const;
 	void update(string k, string v);
 private:
 	string root;
 	map<string, MerkleData*> kd_map;
 	vector<MerkleData*> data;
 	void computeVOForMerkleData(const MerkleData* const md, VO& verif_obj) const;
-	MerkleData* findByVal(const string& val) const;
+	MerkleData* findByKey(const string& k) const;
 };
