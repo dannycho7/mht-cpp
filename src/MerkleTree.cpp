@@ -15,7 +15,7 @@ string hash_256(const string& in) {
 MerkleTree::MerkleTree(const vector<Tuple>& tuples): data(tuples.size()) {
 	assert(tuples.size() > 0);
 	for (auto it = tuples.begin(); it != tuples.end(); it++) {
-		assert(this->kd_map.find(it->first) != this->kd_map.end());
+		assert(this->kd_map.find(it->first) == this->kd_map.end());
 		this->kd_map[it->first] = new MerkleData(it->second);
 	}
 
