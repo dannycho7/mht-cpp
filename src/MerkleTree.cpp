@@ -32,9 +32,10 @@ MerkleTree::MerkleTree(const vector<Tuple>& tuples): data(tuples.size()) {
 	});
 
 	while (num_nodes_in_level > 1) {
-		for (int i = 0; i < num_nodes_in_level; i+=2) {
+		int num_nodes_next_level = ceil(num_nodes_in_level / 2);
+		for (int i = 0; i < num_nodes_next_level; i++) {
 			string concat = level_nodes[2*i]->val;
-			const bool has_right_neighbor = (2 * i + 1 < num_nodes_in_level);
+			const bool has_right_neighbor = (2*i + 1 < num_nodes_in_level);
 			if (has_right_neighbor)
 				concat += level_nodes[2*i + 1]->val;
 			MerkleNode* mn = new MerkleNode(hash_256(concat));
@@ -44,16 +45,23 @@ MerkleTree::MerkleTree(const vector<Tuple>& tuples): data(tuples.size()) {
 				level_nodes[2*i + 1]->sibling = level_nodes[2*i];
 				level_nodes[2*i]->sibling = level_nodes[2*i + 1];
 			}
+			level_nodes[i] = mn;
 		}
-		num_nodes_in_level = ceil(num_nodes_in_level / 2);
+		num_nodes_in_level = num_nodes_next_level;
 	}
-	this->root = level_nodes[0]->val;
 }
 
 MerkleTree::~MerkleTree() {
 	for (auto it = this->data.begin(); it != this->data.end(); it++) {
 		delete *it;
 	}
+}
+
+string MerkleTree::getRoot() const {
+	MerkleNode* curr = this->data[0];
+	while (curr->parent != NULL)
+		curr = curr->parent;
+	return curr->val;
 }
 
 VO MerkleTree::getVO(const string& k) const {

@@ -33,11 +33,10 @@ class MerkleTree {
 public:
 	MerkleTree(const vector<Tuple>& tuples);
 	~MerkleTree();
-	string getRoot() const { return this->root; }
+	string getRoot() const;
 	VO getVO(const string& k) const;
 	void update(string k, string v);
 private:
-	string root;
 	map<string, MerkleData*> kd_map;
 	vector<MerkleData*> data;
 	void computeVOForMerkleData(const MerkleData* const md, VO& verif_obj) const;
