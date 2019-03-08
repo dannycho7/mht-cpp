@@ -15,4 +15,62 @@ extern "C" {
 		}
 		return new MerkleTree(tuples);
 	}
+
+	/*
+	 * @param[in] mht a MerkleTree ptr
+	 */
+	void mht_destroy(void* mht) {
+		delete CAST_MHT(mht);
+	}
+
+	/*
+	 * @param[in] mht a MerkleTree ptr
+	 * @param[out] root of the mht
+	 */
+	char* mht_get_root(void* mht) {
+		std::string root_str = CAST_MHT(mht)->getRoot();
+		char* root = new char[root_str.length() + 1];
+		std::strcpy(root, root_str.c_str());
+		return root;
+	}
+
+	struct VO_C {
+		char* val;
+		char** sibling_path;
+		int sibling_size;
+	};
+	
+	/*
+	 * @param[in] mht a MerkleTree ptr
+	 * @param[in] k the key you want the VO for
+	 * @param[out] VO_C instance
+	 */
+	VO_C mht_get_vo(void* mht, const char* k) {
+		auto mht_cast = CAST_MHT(mht);		
+		VO vo_cpp = mht_cast->getVO(k);
+		char* val = new char[vo_cpp.val.length() + 1];
+		std::strcpy(val, vo_cpp.val.c_str());
+
+		int size = vo_cpp.sibling_path.size();
+		std::vector<char *> buf(size);
+		auto s_path = vo_cpp.sibling_path;
+		std::transform(s_path.begin(), s_path.end(), buf.begin(), [](const std::string& arg) {
+			char* s_val = new char[arg.length() + 1];
+			std::strcpy(s_val, arg.c_str());
+			return s_val;
+		});
+		char** sibling_path_c_arr = new char*[size];
+		std::copy(buf.begin(), buf.end(), sibling_path_c_arr);
+
+		return VO_C {val, sibling_path_c_arr, size};
+	}
+
+	/*
+	 * @param[in] mht a MerkleTree ptr
+	 * @param[in] k the key you want to modify the value for
+	 * @param[in] v the new value
+	 */
+	void mht_update(void* mht, const char* k, const char* v) {
+		CAST_MHT(mht)->update(k, v);
+	}
 }
