@@ -1,0 +1,31 @@
+#include <gtest/gtest.h>
+
+#include "./PicoSHA2/picosha2.h"
+#include "MerkleTree.hpp"
+
+string hash_256(const string& in) {
+    string hash_hex_str;
+    picosha2::hash256_hex_string(in, hash_hex_str);
+    return hash_hex_str;
+}
+
+TEST(MerkleTreeTest, getRoot) {
+    vector<Tuple> data{{"k1", "v1"}, {"k2", "v2"}};
+    MerkleTree mht{data, hash_256};
+    EXPECT_EQ(mht.getRoot(), hash_256(hash_256("v1") + hash_256("v2")));
+}
+
+TEST(MerkleTreeTest, getVO) {
+    vector<Tuple> data{{"k1", "v1"}, {"k2", "v2"}};
+    MerkleTree mht{data, hash_256};
+    VO vo1 = mht.getVO("k1");
+    EXPECT_EQ(vo1.val, "v1");
+    EXPECT_EQ(vo1.sibling_path.size(), 1);
+    EXPECT_EQ(vo1.sibling_path[0], hash_256("v2"));
+
+    VO vo2 = mht.getVO("k2");
+    EXPECT_EQ(vo2.val, "v2");
+    EXPECT_EQ(vo2.sibling_path.size(), 1);
+    EXPECT_EQ(vo2.sibling_path[0], hash_256("v1"));
+}
+
