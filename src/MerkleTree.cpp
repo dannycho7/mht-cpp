@@ -9,9 +9,10 @@ MerkleTree::MerkleTree(const vector<Tuple> &tuples,
                        std::function<string(string)> hashFunc)
     : data(tuples.size()), mHashFunc(hashFunc) {
     assert(tuples.size() > 0);
-    for (auto it = tuples.begin(); it != tuples.end(); it++) {
-        assert(this->kd_map.find(it->first) == this->kd_map.end());
-        this->kd_map[it->first] = new MerkleData(it->second);
+
+    for (int i = 0; i < tuples.size(); i++) {
+        assert(this->kd_map.find(tuples[i].first) == this->kd_map.end());
+        this->kd_map[tuples[i].first] = new MerkleData(tuples[i].second, i);
     }
 
     std::transform(this->kd_map.begin(), this->kd_map.end(), data.begin(),
@@ -19,20 +20,21 @@ MerkleTree::MerkleTree(const vector<Tuple> &tuples,
 
     vector<MerkleNode *> level_nodes(data.size());
     int num_nodes_in_level = level_nodes.size();
-    std::transform(data.begin(), data.end(), level_nodes.begin(),
-                   [this](MerkleData *md) {
-                       MerkleNode *mn = new MerkleNode(mHashFunc(md->val));
-                       md->parent = mn;
-                       return mn;
-                   });
+    std::transform(
+        data.begin(), data.end(), level_nodes.begin(), [this](MerkleData *md) {
+            MerkleNode *mn = new MerkleNode(mHashFunc(md->val), md->mRelI);
+            md->parent = mn;
+            return mn;
+        });
 
     while (num_nodes_in_level > 1) {
-        int num_nodes_next_level = ceil(num_nodes_in_level / 2);
+        int num_nodes_next_level =
+            ceil(static_cast<double>(num_nodes_in_level) / 2);
         for (int i = 0; i < num_nodes_next_level; i++) {
             string concat = level_nodes[2 * i]->val;
             const bool has_right_neighbor = (2 * i + 1 < num_nodes_in_level);
             if (has_right_neighbor) concat += level_nodes[2 * i + 1]->val;
-            MerkleNode *mn = new MerkleNode(mHashFunc(concat));
+            MerkleNode *mn = new MerkleNode(mHashFunc(concat), i);
             level_nodes[2 * i]->parent = mn;
             if (has_right_neighbor) {
                 level_nodes[2 * i + 1]->parent = mn;
@@ -92,8 +94,11 @@ void MerkleTree::update(string k, string v) {
     MerkleNode *prev = md;
     MerkleNode *curr = md->parent;
     while (curr != NULL) {
-        string concat = (prev->sibling != NULL) ? prev->val + prev->sibling->val
-                                                : prev->val;
+        string concat = (prev->sibling != NULL)
+                            ? (prev->mRelI < prev->sibling->mRelI)
+                                  ? prev->val + prev->sibling->val
+                                  : prev->sibling->val + prev->val
+                            : prev->val;
         curr->val = mHashFunc(concat);
         prev = curr;
         curr = curr->parent;

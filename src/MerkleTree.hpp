@@ -14,13 +14,15 @@ using std::vector;
 
 struct MerkleNode {
     string val;
+    int mRelI;  // relative index: used to determine which sibling goes first
     MerkleNode* parent;
     MerkleNode* sibling;
-    MerkleNode(string val) : val(val), parent(NULL), sibling(NULL) {}
+    MerkleNode(string val, int relI)
+        : val(val), mRelI(relI), parent(NULL), sibling(NULL) {}
 };
 
 struct MerkleData : MerkleNode {
-    MerkleData(string val) : MerkleNode(val) {}
+    MerkleData(string val, int relI) : MerkleNode(val, relI) {}
 };
 
 struct VO {

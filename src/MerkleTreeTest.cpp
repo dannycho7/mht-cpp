@@ -9,10 +9,19 @@ string hash_256(const string& in) {
     return hash_hex_str;
 }
 
-TEST(MerkleTreeTest, getRoot) {
+TEST(MerkleTreeTest, getRootBasic) {
     vector<Tuple> data{{"k1", "v1"}, {"k2", "v2"}};
     MerkleTree mht{data, hash_256};
     EXPECT_EQ(mht.getRoot(), hash_256(hash_256("v1") + hash_256("v2")));
+}
+
+TEST(MerkleTreeTest, getRootWithOddNItems) {
+    vector<Tuple> data{{"k1", "v1"}, {"k2", "v2"}, {"k3", "v3"}};
+    MerkleTree mht{data, hash_256};
+
+    EXPECT_EQ(mht.getRoot(),
+              hash_256(hash_256(hash_256("v1") + hash_256("v2")) +
+                       hash_256(hash_256("v3"))));
 }
 
 TEST(MerkleTreeTest, getVO) {
@@ -27,5 +36,14 @@ TEST(MerkleTreeTest, getVO) {
     EXPECT_EQ(vo2.val, "v2");
     EXPECT_EQ(vo2.sibling_path.size(), 1);
     EXPECT_EQ(vo2.sibling_path[0], hash_256("v1"));
+}
+
+TEST(MerkleTreeTest, updateWithValidKey) {
+    vector<Tuple> data{{"k1", "v1"}, {"k2", "v2"}};
+    MerkleTree mht{data, hash_256};
+    mht.update("k1", "v3");
+    EXPECT_EQ(mht.getRoot(), hash_256(hash_256("v3") + hash_256("v2")));
+    mht.update("k2", "v4");
+    EXPECT_EQ(mht.getRoot(), hash_256(hash_256("v3") + hash_256("v4")));
 }
 
