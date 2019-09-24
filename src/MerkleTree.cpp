@@ -1,6 +1,5 @@
 #include "./MerkleTree.hpp"
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
@@ -8,10 +7,14 @@
 MerkleTree::MerkleTree(const vector<Tuple> &tuples,
                        std::function<string(string)> hashFunc)
     : data(tuples.size()), mHashFunc(hashFunc) {
-    assert(tuples.size() > 0);
+    if (tuples.empty()) {
+        throw std::invalid_argument("Must have at least one tuple.");
+    }
 
     for (int i = 0; i < tuples.size(); i++) {
-        assert(this->kd_map.find(tuples[i].first) == this->kd_map.end());
+        if (this->kd_map.find(tuples[i].first) != this->kd_map.end()) {
+            throw std::invalid_argument("Cannot have duplicate keys.");
+        }
         this->kd_map[tuples[i].first] = new MerkleData(tuples[i].second, i);
     }
 
@@ -88,7 +91,9 @@ MerkleData *MerkleTree::findByKey(const string &k) const {
 
 void MerkleTree::update(string k, string v) {
     auto md_it = this->kd_map.find(k);
-    assert(md_it != this->kd_map.end());
+    if (md_it == this->kd_map.end()) {
+        throw std::invalid_argument("Invalid key: " + k);
+    }
     MerkleData *md = md_it->second;
     md->val = v;
     MerkleNode *prev = md;
