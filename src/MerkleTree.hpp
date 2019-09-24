@@ -13,10 +13,9 @@ using std::vector;
 struct MerkleNode {
     string val;
     int mRelI;  // relative index: used to determine which sibling goes first
-    MerkleNode* parent;
-    MerkleNode* sibling;
-    MerkleNode(string val, int relI)
-        : val(val), mRelI(relI), parent(NULL), sibling(NULL) {}
+    std::shared_ptr<MerkleNode> parent;
+    std::weak_ptr<MerkleNode> sibling;
+    MerkleNode(string val, int relI) : val(val), mRelI(relI) {}
 };
 
 struct MerkleData : MerkleNode {
@@ -32,16 +31,16 @@ class MerkleTree {
    public:
     MerkleTree(const map<string, string>& rawData,
                function<string(string)> hashFunc);
-    ~MerkleTree();
+    ~MerkleTree() = default;
     string getRoot() const;
     VO getVO(const string& k) const;
     void update(string k, string v);
 
    private:
     string root;
-    map<string, MerkleData*> kmd_map;
+    map<string, std::shared_ptr<MerkleData>> kmd_map;
     const function<string(string)> mHashFunc;
-    void computeVOForMerkleData(const MerkleData* const md,
+    void computeVOForMerkleData(std::shared_ptr<const MerkleData> md,
                                 VO& verif_obj) const;
-    MerkleData* findByKey(const string& k) const;
+    std::shared_ptr<MerkleData> findByKey(const string& k) const;
 };

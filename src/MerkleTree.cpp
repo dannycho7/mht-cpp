@@ -3,7 +3,6 @@
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
-#include <iostream>
 
 using std::pair;
 
@@ -13,22 +12,23 @@ MerkleTree::MerkleTree(const map<string, string> &rawData,
     if (rawData.empty()) {
         throw std::invalid_argument("Must have at least one tuple.");
     }
-
-    int i = 0;
-    std::transform(rawData.begin(), rawData.end(),
-                   std::inserter(kmd_map, kmd_map.begin()),
-                   [&i](pair<string, string> kd_pair) {
-                       return pair<string, MerkleData *>(
-                           kd_pair.first, new MerkleData(kd_pair.second, i++));
-                   });
-
-    vector<MerkleNode *> level_nodes(kmd_map.size());
+    {
+        int i = 0;
+        std::transform(rawData.begin(), rawData.end(),
+                       std::inserter(kmd_map, kmd_map.begin()),
+                       [&i](pair<string, string> kd_pair) {
+                           return pair<string, std::shared_ptr<MerkleData>>(
+                               kd_pair.first, std::make_shared<MerkleData>(
+                                                  kd_pair.second, i++));
+                       });
+    }
+    vector<std::shared_ptr<MerkleNode>> level_nodes(kmd_map.size());
     int num_nodes_in_level = level_nodes.size();
     std::transform(kmd_map.begin(), kmd_map.end(), level_nodes.begin(),
-                   [this](pair<string, MerkleData *> kmd_pair) {
+                   [this](pair<string, std::shared_ptr<MerkleNode>> kmd_pair) {
                        auto md = kmd_pair.second;
-                       MerkleNode *mn =
-                           new MerkleNode(mHashFunc(md->val), md->mRelI);
+                       auto mn = std::make_shared<MerkleNode>(
+                           mHashFunc(md->val), md->mRelI);
                        md->parent = mn;
                        return mn;
                    });
@@ -40,7 +40,7 @@ MerkleTree::MerkleTree(const map<string, string> &rawData,
             string concat = level_nodes[2 * i]->val;
             const bool has_right_neighbor = (2 * i + 1 < num_nodes_in_level);
             if (has_right_neighbor) concat += level_nodes[2 * i + 1]->val;
-            MerkleNode *mn = new MerkleNode(mHashFunc(concat), i);
+            auto mn = std::make_shared<MerkleNode>(mHashFunc(concat), i);
             level_nodes[2 * i]->parent = mn;
             if (has_right_neighbor) {
                 level_nodes[2 * i + 1]->parent = mn;
@@ -53,36 +53,30 @@ MerkleTree::MerkleTree(const map<string, string> &rawData,
     }
 }
 
-MerkleTree::~MerkleTree() {
-    for (auto it = kmd_map.begin(); it != kmd_map.end(); it++) {
-        delete it->second;
-    }
-}
-
 string MerkleTree::getRoot() const {
-    MerkleNode *curr = kmd_map.begin()->second;
-    while (curr->parent != NULL) curr = curr->parent;
+    std::shared_ptr<MerkleNode> curr = kmd_map.begin()->second;
+    while (curr->parent) curr = curr->parent;
     return curr->val;
 }
 
 VO MerkleTree::getVO(const string &k) const {
-    MerkleData *md = findByKey(k);
+    auto md = findByKey(k);
     VO verification_obj;
     computeVOForMerkleData(md, verification_obj);
     return verification_obj;
 }
 
-void MerkleTree::computeVOForMerkleData(const MerkleData *const md,
+void MerkleTree::computeVOForMerkleData(std::shared_ptr<const MerkleData> md,
                                         VO &verif_obj) const {
     verif_obj.val = md->val;
-    MerkleNode *curr_mn = md->parent;
+    std::shared_ptr<MerkleNode> curr_mn = md->parent;
     while (curr_mn->parent != NULL) {
-        verif_obj.sibling_path.push_back(curr_mn->sibling->val);
+        verif_obj.sibling_path.push_back(curr_mn->sibling.lock()->val);
         curr_mn = curr_mn->parent;
     }
 }
 
-MerkleData *MerkleTree::findByKey(const string &k) const {
+std::shared_ptr<MerkleData> MerkleTree::findByKey(const string &k) const {
     auto md_it = this->kmd_map.find(k);
     if (md_it == this->kmd_map.end()) {
         std::ostringstream err_msg_s;
@@ -97,16 +91,16 @@ void MerkleTree::update(string k, string v) {
     if (md_it == this->kmd_map.end()) {
         throw std::invalid_argument("Invalid key: " + k);
     }
-    MerkleData *md = md_it->second;
+    auto md = md_it->second;
     md->val = v;
-    MerkleNode *prev = md;
-    MerkleNode *curr = md->parent;
-    while (curr != NULL) {
-        string concat = (prev->sibling != NULL)
-                            ? (prev->mRelI < prev->sibling->mRelI)
-                                  ? prev->val + prev->sibling->val
-                                  : prev->sibling->val + prev->val
-                            : prev->val;
+    std::shared_ptr<MerkleNode> prev = md;
+    std::shared_ptr<MerkleNode> curr = md->parent;
+    while (curr) {
+        auto sibling = prev->sibling.lock();
+        string concat = sibling ? (prev->mRelI < sibling->mRelI)
+                                      ? prev->val + sibling->val
+                                      : sibling->val + prev->val
+                                : prev->val;
         curr->val = mHashFunc(concat);
         prev = curr;
         curr = curr->parent;
