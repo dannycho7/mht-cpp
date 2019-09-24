@@ -1,34 +1,37 @@
-#include "./MerkleTree.hpp"
+#include "MerkleTree.hpp"
 #include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
-MerkleTree::MerkleTree(const vector<Tuple> &tuples,
+using std::pair;
+
+MerkleTree::MerkleTree(const map<string, string> &rawData,
                        std::function<string(string)> hashFunc)
-    : data(tuples.size()), mHashFunc(hashFunc) {
-    if (tuples.empty()) {
+    : mHashFunc(hashFunc) {
+    if (rawData.empty()) {
         throw std::invalid_argument("Must have at least one tuple.");
     }
 
-    for (int i = 0; i < tuples.size(); i++) {
-        if (this->kd_map.find(tuples[i].first) != this->kd_map.end()) {
-            throw std::invalid_argument("Cannot have duplicate keys.");
-        }
-        this->kd_map[tuples[i].first] = new MerkleData(tuples[i].second, i);
-    }
+    int i = 0;
+    std::transform(rawData.begin(), rawData.end(),
+                   std::inserter(kmd_map, kmd_map.begin()),
+                   [&i](pair<string, string> kd_pair) {
+                       return pair<string, MerkleData *>(
+                           kd_pair.first, new MerkleData(kd_pair.second, i++));
+                   });
 
-    std::transform(this->kd_map.begin(), this->kd_map.end(), data.begin(),
-                   [](KDPair kd_pair) { return kd_pair.second; });
-
-    vector<MerkleNode *> level_nodes(data.size());
+    vector<MerkleNode *> level_nodes(kmd_map.size());
     int num_nodes_in_level = level_nodes.size();
-    std::transform(
-        data.begin(), data.end(), level_nodes.begin(), [this](MerkleData *md) {
-            MerkleNode *mn = new MerkleNode(mHashFunc(md->val), md->mRelI);
-            md->parent = mn;
-            return mn;
-        });
+    std::transform(kmd_map.begin(), kmd_map.end(), level_nodes.begin(),
+                   [this](pair<string, MerkleData *> kmd_pair) {
+                       auto md = kmd_pair.second;
+                       MerkleNode *mn =
+                           new MerkleNode(mHashFunc(md->val), md->mRelI);
+                       md->parent = mn;
+                       return mn;
+                   });
 
     while (num_nodes_in_level > 1) {
         int num_nodes_next_level =
@@ -51,13 +54,13 @@ MerkleTree::MerkleTree(const vector<Tuple> &tuples,
 }
 
 MerkleTree::~MerkleTree() {
-    for (auto it = this->data.begin(); it != this->data.end(); it++) {
-        delete *it;
+    for (auto it = kmd_map.begin(); it != kmd_map.end(); it++) {
+        delete it->second;
     }
 }
 
 string MerkleTree::getRoot() const {
-    MerkleNode *curr = this->data[0];
+    MerkleNode *curr = kmd_map.begin()->second;
     while (curr->parent != NULL) curr = curr->parent;
     return curr->val;
 }
@@ -80,8 +83,8 @@ void MerkleTree::computeVOForMerkleData(const MerkleData *const md,
 }
 
 MerkleData *MerkleTree::findByKey(const string &k) const {
-    auto md_it = this->kd_map.find(k);
-    if (md_it == this->kd_map.end()) {
+    auto md_it = this->kmd_map.find(k);
+    if (md_it == this->kmd_map.end()) {
         std::ostringstream err_msg_s;
         err_msg_s << k << " does not exist in the MerkleTree";
         throw std::invalid_argument(err_msg_s.str());
@@ -90,8 +93,8 @@ MerkleData *MerkleTree::findByKey(const string &k) const {
 }
 
 void MerkleTree::update(string k, string v) {
-    auto md_it = this->kd_map.find(k);
-    if (md_it == this->kd_map.end()) {
+    auto md_it = this->kmd_map.find(k);
+    if (md_it == this->kmd_map.end()) {
         throw std::invalid_argument("Invalid key: " + k);
     }
     MerkleData *md = md_it->second;

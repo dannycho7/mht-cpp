@@ -1,5 +1,7 @@
 #define CAST_MHT(x) (static_cast<MerkleTree*>(x))
-#include "./MerkleTree.hpp"
+
+#include <stdexcept>
+#include "MerkleTree.hpp"
 
 extern "C" {
 /*
@@ -9,13 +11,17 @@ extern "C" {
  */
 void* mht_create(const char* raw_tuples[], int rt_size,
                  const char* (*hashFunc)(const char*)) {
-    // convert to vector<Tuple>
-    vector<Tuple> tuples;
+    // convert to map<string, string>
+    map<string, string> raw_data;
     for (int i = 0; i < rt_size; i += 2) {
-        tuples.push_back(Tuple(raw_tuples[i], raw_tuples[i + 1]));
+        if (raw_data.find(raw_tuples[i]) != raw_data.end()) {
+            throw std::invalid_argument("Cannot have duplicate keys.");
+        }
+        raw_data[raw_tuples[i]] = raw_tuples[i + 1];
     }
-    return new MerkleTree(
-        tuples, [hashFunc](const string& in) { return hashFunc(in.c_str()); });
+    return new MerkleTree(raw_data, [hashFunc](const string& in) {
+        return hashFunc(in.c_str());
+    });
 }
 
 /*

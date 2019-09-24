@@ -3,12 +3,10 @@
 #include <functional>
 #include <map>
 #include <string>
-#include <utility> /* std::pair */
 #include <vector>
 
 using std::function;
 using std::map;
-using std::pair;
 using std::string;
 using std::vector;
 
@@ -30,12 +28,10 @@ struct VO {
     vector<string> sibling_path;
 };
 
-typedef pair<string, string> Tuple; /* k, v */
-typedef pair<string, MerkleData*> KDPair;
-
 class MerkleTree {
    public:
-    MerkleTree(const vector<Tuple>& tuples, function<string(string)> hashFunc);
+    MerkleTree(const map<string, string>& rawData,
+               function<string(string)> hashFunc);
     ~MerkleTree();
     string getRoot() const;
     VO getVO(const string& k) const;
@@ -43,8 +39,7 @@ class MerkleTree {
 
    private:
     string root;
-    map<string, MerkleData*> kd_map;
-    vector<MerkleData*> data;
+    map<string, MerkleData*> kmd_map;
     const function<string(string)> mHashFunc;
     void computeVOForMerkleData(const MerkleData* const md,
                                 VO& verif_obj) const;
