@@ -16,6 +16,12 @@ TEST(MerkleTreeTest, withNoData) {
 }
 
 TEST(MerkleTreeTest, getRootBasic) {
+    map<string, string> data{{"k", "v"}};
+    MerkleTree mht{data, hash_256};
+    EXPECT_EQ(mht.getRoot(), hash_256("v"));
+}
+
+TEST(MerkleTreeTest, getRootEvenNItems) {
     map<string, string> data{{"k1", "v1"}, {"k2", "v2"}};
     MerkleTree mht{data, hash_256};
     EXPECT_EQ(mht.getRoot(), hash_256(hash_256("v1") + hash_256("v2")));
