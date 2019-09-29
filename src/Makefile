@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++11 -Wall
+CXXFLAGS=-std=c++14 -Wall
 GTEST_FLAGS=-lgtest
 GTEST_MAIN=./googletest/googletest/src/gtest_main.cc
 

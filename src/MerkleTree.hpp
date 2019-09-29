@@ -24,7 +24,7 @@ struct MerkleData : MerkleNode {
 
 struct VO {
     string val;
-    vector<string> sibling_path;
+    vector<string> mSiblingPath;
 };
 
 class MerkleTree {
@@ -38,9 +38,9 @@ class MerkleTree {
 
    private:
     string root;
-    map<string, std::shared_ptr<MerkleData>> kmd_map;
+    map<string, std::shared_ptr<MerkleData>> mMerkleDataByKey;
     const function<string(string)> mHashFunc;
     void computeVOForMerkleData(std::shared_ptr<const MerkleData> md,
-                                VO& verif_obj) const;
+                                VO& verificationObj) const;
     std::shared_ptr<MerkleData> findByKey(const string& k) const;
 };
