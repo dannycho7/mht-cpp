@@ -10,7 +10,7 @@ extern "C" {
  * @param[out] MerkleTree instance
  */
 void* mhtCreate(const char* rawTuples[], int rtSize,
-                 const char* (*hashFunc)(const char*)) {
+                char* (*hashFunc)(const char*)) {
     map<string, string> rawData;
     for (int i = 0; i < rtSize; i += 2) {
         if (rawData.find(rawTuples[i]) != rawData.end()) {
@@ -19,7 +19,10 @@ void* mhtCreate(const char* rawTuples[], int rtSize,
         rawData[rawTuples[i]] = rawTuples[i + 1];
     }
     return new MerkleTree(rawData, [hashFunc](const string& in) {
-        return hashFunc(in.c_str());
+        auto hCharS = hashFunc(in.c_str());
+        string hStr{hCharS};
+        free(hCharS);
+        return hStr;
     });
 }
 
