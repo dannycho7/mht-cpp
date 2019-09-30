@@ -1,7 +1,7 @@
 #define CAST_MHT(mht) static_cast<MerkleTree*>(mht)
 
 #include <stdexcept>
-#include "MerkleTree.hpp"
+#include "../MerkleTree.hpp"
 
 extern "C" {
 /*

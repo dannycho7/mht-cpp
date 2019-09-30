@@ -2,4 +2,6 @@
 *.o
 *.out
 *.so
+*.swp
 .vscode
+__pycache__/
